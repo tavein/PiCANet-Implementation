@@ -7,6 +7,7 @@ import os
 from tqdm import tqdm
 from tensorboardX import SummaryWriter
 import argparse
+from train import cfg
 
 torch.set_printoptions(profile='full')
 if __name__ == '__main__':
@@ -18,7 +19,7 @@ if __name__ == '__main__':
                              "https://drive.google.com/drive/folders/1s4M-_SnCPMj_2rsMkSy3pLnLQcgRakAe?usp=sharing")
     parser.add_argument('--dataset', help='Directory of your test_image ""folder""', required=True)
     parser.add_argument('--cuda', help="cuda for cuda, cpu for cpu, default = cuda", default='cuda')
-    parser.add_argument('--batch_size', help="batchsize, default = 4", default=4, type=int)
+    parser.add_argument('--batch_size', help="batchsize, default = 3", default=3, type=int)
     parser.add_argument('--logdir', help="logdir, log on tensorboard", default=None)
     parser.add_argument('--save_dir', help="save result images as .jpg file. If None -> Not save", default=None)
 
@@ -31,9 +32,18 @@ if __name__ == '__main__':
     print(args)
     print(os.getcwd())
     device = torch.device(args.cuda)
+    #torch.save(
+    #    model.state_dict(),
+    #    os.path.join(weight_save_dir, '{}epo_{}step.ckpt'.format(epo, iterate))
+    #)
     state_dict = torch.load(args.model_dir, map_location=args.cuda)
     model = Unet().to(device)
-    model.load_state_dict(state_dict)
+    #model = Unet(cfg).to(device)
+    #for cell in model.decoder:
+    #    if cell.mode == 'G':
+    #        cell.picanet.renet.vertical.flatten_parameters()
+    #        cell.picanet.renet.horizontal.flatten_parameters()
+    model.load_state_dict(state_dict)#, strict=False)
     custom_dataset = CustomDataset(root_dir=args.dataset)
     dataloader = DataLoader(custom_dataset, args.batch_size, shuffle=False)
     os.makedirs(os.path.join(args.save_dir, 'img'), exist_ok=True)

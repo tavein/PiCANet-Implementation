@@ -50,27 +50,27 @@ if __name__ == '__main__':
     load = args.load
     start_iter = 0
     model = Unet(cfg).cuda()
-    vgg = torchvision.models.vgg16(pretrained=True)
-    model.encoder.seq.load_state_dict(vgg.features.state_dict())
+    #vgg = torchvision.models.vgg16(pretrained=True)
+    #model.encoder.seq.load_state_dict(vgg.features.state_dict())
     now = datetime.datetime.now()
     start_epo = 0
-    del vgg
+    #del vgg
 
     if load is not None:
         state_dict = torch.load(load, map_location=args.cuda)
 
-        start_iter = int(load.split('epo_')[1].strip('step.ckpt')) + 1
-        start_epo = int(load.split('/')[3].split('epo')[0])
-        now = datetime.datetime.strptime(load.split('/')[2], '%m%d%H%M')
+        #start_iter = int(load.split('epo_')[1].strip('step.ckpt')) + 1
+        #start_epo = int(load.split('/')[3].split('epo')[0])
+        #now = datetime.datetime.strptime(load.split('/')[2], '%m%d%H%M')
 
-        print("Loading Model from {}".format(load))
-        print("Start_iter : {}".format(start_iter))
-        print("now : {}".format(now.strftime('%m%d%H%M')))
+        #print("Loading Model from {}".format(load))
+        #print("Start_iter : {}".format(start_iter))
+        #print("now : {}".format(now.strftime('%m%d%H%M')))
         model.load_state_dict(state_dict)
-        for cell in model.decoder:
-            if cell.mode == 'G':
-                cell.picanet.renet.vertical.flatten_parameters()
-                cell.picanet.renet.horizontal.flatten_parameters()
+        #for cell in model.decoder:
+        #    if cell.mode == 'G':
+        #        cell.picanet.renet.vertical.flatten_parameters()
+        #        cell.picanet.renet.horizontal.flatten_parameters()
         print('Loading_Complete')
 
     # Optimizer Setup
@@ -91,8 +91,8 @@ if __name__ == '__main__':
     for epo in range(start_epo, epoch):
         print("\nEpoch : {}".format(epo))
         for i, batch in enumerate(tqdm(dataloader)):
-            if i > 10:
-                break
+            #if i > 10:
+            #    break
             opt_dec.zero_grad()
             opt_en.zero_grad()
             img = batch['image'].to(device)
@@ -103,16 +103,18 @@ if __name__ == '__main__':
             opt_dec.step()
             opt_en.step()
             writer.add_scalar('loss', float(loss), global_step=iterate)
-            if iterate % args.display_freq == 0:
-                for masked in pred:
-                    writer.add_image('{}'.format(masked.size()[2]), masked, global_step=iterate)
-                writer.add_image('GT', mask, iterate)
-                writer.add_image('Image', img, iterate)
+            #if iterate % args.display_freq == 0:
+            #    for masked in pred:
+            #        writer.add_image('{}'.format(masked.size()[2]), masked, global_step=iterate)
+            #    writer.add_image('GT', mask, iterate)
+            #    writer.add_image('Image', img, iterate)
 
             if iterate % 200 == 0:
                 if i != 0:
-                    torch.save(model.state_dict(),
-                               os.path.join(weight_save_dir, '{}epo_{}step.ckpt'.format(epo, iterate)))
+                    torch.save(
+                        model.state_dict(),
+                        os.path.join(weight_save_dir, '{}epo_{}step.ckpt'.format(epo, iterate))
+                    )
             if iterate % 1000 == 0 and i != 0:
                 for file in weight_save_dir:
                     if '00' in file and '000' not in file:
